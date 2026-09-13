@@ -1,25 +1,25 @@
-# LendingClub Credit Risk Modelling & Profit-Optimized Lending Policy
+# Credit Risk Modelling
 
 ## Project Overview
 
-This project develops an end-to-end **credit risk modelling and lending decision framework** using real LendingClub loan data. Rather than focusing only on predicting loan defaults, the project converts model predictions into a **profit-optimized approval policy** using loan-level financial economics.
+This project presents an end-to-end **credit risk modelling and lending decision framework** using real-world LendingClub loan data. Beyond predicting loan defaults, the analysis translates model predictions into a **profit-optimized approval strategy** based on loan-level financial outcomes.
 
-The analysis covers **395,754 funded loans** and combines feature engineering, gradient-boosting models, probability calibration, explainability, risk segmentation, temporal validation, and decision-threshold optimization.
+The project covers **395,754 funded loans** and combines feature engineering, gradient-boosting models, probability calibration, model explainability, risk segmentation, temporal validation, and decision-threshold optimization.
 
 ## Objective
 
-The primary objective is to identify borrowers with higher default risk and determine an approval threshold that balances **credit risk with lending profitability**.
+The primary goal is to identify borrowers with elevated default risk and determine an approval threshold that balances **credit risk with lending profitability**.
 
-The project addresses two key lending outcomes:
+The framework considers two key lending outcomes:
 
 * Approving a borrower who defaults → potential loss of principal
-* Rejecting a borrower who would repay → loss of potential interest income
+* Rejecting a borrower who would repay → missed interest income
 
-Therefore, the final decision is optimized around expected portfolio profit rather than classification accuracy alone.
+Therefore, the final lending decision is optimized around expected portfolio profit rather than classification accuracy alone.
 
 ## Dataset
 
-The dataset contains LendingClub loan information obtained through Kaggle.
+The dataset contains LendingClub loan information sourced through Kaggle.
 
 * **395,754 funded loans**
 * **19.61% default rate**
@@ -33,7 +33,7 @@ The `issue_d` variable is excluded from modelling because it would not be availa
 
 ### 1. Data Preprocessing & Feature Engineering
 
-The preprocessing workflow includes:
+The preprocessing pipeline includes:
 
 * Converting loan-term information into numerical variables
 * Processing credit-history features
@@ -42,7 +42,7 @@ The preprocessing workflow includes:
 * Handling missing values using training-data-only transformations
 * Creating domain-specific financial ratios
 
-Important engineered variables include:
+Key engineered variables include:
 
 * `loan_to_income`
 * `installment_to_loan`
@@ -50,17 +50,17 @@ Important engineered variables include:
 * `open_to_total_acc_ratio`
 * `annual_installment_to_income`
 
-These features capture the relationship between a borrower's financial obligations and repayment capacity.
+These features capture relationships between borrower income, financial obligations, credit utilization, and repayment capacity.
 
 ### 2. Leakage-Controlled Modelling
 
-A **three-way stratified train/validation/test split** was used.
+A **three-way stratified train/validation/test split** is used.
 
 * Training data → model fitting and preprocessing
-* Validation data → early stopping, threshold selection, and calibration
+* Validation data → early stopping, calibration, and threshold selection
 * Test data → final unbiased evaluation
 
-All preprocessing and imputation operations are fitted using training data only.
+All preprocessing and imputation steps are fitted using training data only to prevent information leakage.
 
 ### 3. Machine Learning Models
 
@@ -72,17 +72,17 @@ The project evaluates:
 * LendingClub's existing `sub_grade` system
 * Approve-everyone baseline
 
-Class imbalance is handled using `scale_pos_weight` rather than synthetic oversampling or data removal.
+Class imbalance is handled using `scale_pos_weight` rather than synthetic oversampling or removing observations.
 
 ### 4. Probability Calibration
 
-Because class weighting can distort predicted probabilities, **isotonic regression** is applied to the validation predictions.
+Since class weighting can distort predicted probabilities, **isotonic regression** is applied to validation predictions.
 
-This improves the reliability of predicted risk probabilities before they are used for business decisions.
+This improves the reliability of estimated default probabilities before they are used for lending decisions.
 
 ### 5. Profit-Optimized Decision Policy
 
-Instead of using the conventional **0.5 classification threshold**, the approval threshold is selected by maximizing estimated portfolio profit.
+Instead of applying the conventional **0.5 classification threshold**, the approval threshold is selected by maximizing estimated portfolio profit.
 
 The framework considers:
 
@@ -90,13 +90,13 @@ The framework considers:
 * Principal losses from defaulted loans
 * Assumed **Loss Given Default (LGD)**
 
-The selected threshold is optimized on validation data and then applied to the test set.
+The optimal threshold is determined using validation data and then evaluated on the test set.
 
 ### 6. Risk Segmentation
 
-Applicants are ranked by predicted risk and divided into **10 risk deciles**.
+Borrowers are ranked according to predicted default probability and divided into **10 risk deciles**.
 
-This helps evaluate whether predicted risk increases consistently across borrower groups and provides a practical view of portfolio risk concentration.
+This provides a practical view of risk concentration and helps assess whether predicted risk increases consistently across borrower groups.
 
 ### 7. Model Validation
 
@@ -110,7 +110,7 @@ Performance is evaluated using:
 * Recall
 * Approval Rate
 
-Additional validation is performed across:
+Additional validation is conducted across:
 
 * Credit grades
 * Loan terms
@@ -133,7 +133,7 @@ The best-performing model is **calibrated LightGBM**.
 | Riskiest 3 Deciles Defaults Captured |  **54.6%** |
 | Risk Spread (D10/D1)                 |  **11.5×** |
 
-The model achieves a **0.7233 ROC-AUC**, outperforming LendingClub's `sub_grade` benchmark at **0.6867**.
+The model achieves a **0.7233 ROC-AUC**, outperforming LendingClub's `sub_grade` benchmark of **0.6867**.
 
 ## Business Impact
 
@@ -144,11 +144,11 @@ At an assumed **LGD of 0.6**, the profit-optimized model policy generates:
 * Approval rate: **96.7%**
 * Approved-loan default rate: **18.3%**, compared with **19.6%** for the overall portfolio
 
-This demonstrates that model value is not limited to better predictive performance—the predictions can be translated into a financially informed lending strategy.
+These results demonstrate how credit risk predictions can be translated into a financially informed lending strategy.
 
 ## Explainability
 
-**SHAP** is used to understand model behaviour and identify the features driving credit risk.
+**SHAP** is used to interpret model predictions and identify the features contributing most strongly to credit risk.
 
 Top features include:
 
@@ -163,31 +163,31 @@ Top features include:
 * `loan_to_income`
 * `annual_installment_to_income`
 
-The engineered financial-ratio variables account for **five of the top ten features**, demonstrating their value in capturing borrower repayment capacity.
+Five of the top ten features are engineered financial ratios, highlighting their importance in capturing borrower repayment capacity.
 
 ## Key Insights
 
-* Risk deciles show a monotonic increase in default rates from the safest to riskiest borrowers.
+* Default rates increase consistently across risk deciles from the safest to riskiest borrowers.
 * The riskiest decile has a **47.60% default rate**, compared with **4.13%** in the safest decile.
 * Calibrated LightGBM outperforms both Logistic Regression and LendingClub's existing grade-based benchmark.
-* Profit-based threshold selection can produce greater business value than optimizing classification metrics alone.
-* Feature engineering around borrower obligations and financial capacity significantly contributes to model explainability.
-* Out-of-time validation reveals modest performance degradation, highlighting the importance of temporal robustness.
+* Profit-based threshold optimization can create greater business value than optimizing classification metrics alone.
+* Financial-ratio features contribute significantly to model interpretability and risk assessment.
+* Out-of-time validation shows modest performance degradation, highlighting the importance of temporal robustness.
 
 ## Model Development Lessons
 
-Two important modelling issues were identified and corrected during development:
+Two important modelling issues were identified and addressed:
 
-1. **Threshold and calibration mismatch:** A threshold optimized on raw probabilities became invalid after isotonic calibration. The threshold must be re-optimized on the calibrated probability scale.
+1. **Threshold and calibration mismatch:** A threshold optimized on raw probabilities became invalid after isotonic calibration. The threshold must therefore be re-optimized using calibrated probabilities.
 
-2. **LightGBM undertraining:** Early stopping was affected by the default evaluation metric under class weighting. The configuration was corrected using `average_precision`, `first_metric_only=True`, and `subsample_freq=1`.
+2. **LightGBM undertraining:** Early stopping was affected by the default evaluation metric under class weighting. This was corrected using `average_precision`, `first_metric_only=True`, and `subsample_freq=1`.
 
-These checks highlight the importance of validating intermediate modelling outputs rather than relying solely on final metrics.
+These checks highlight the importance of validating intermediate modelling stages rather than relying solely on final model metrics.
 
 ## Limitations
 
-* The dataset contains only funded loans, creating potential **survivorship bias**.
-* LGD is an assumed parameter rather than a directly measured value.
+* The dataset contains only funded loans, which may introduce **survivorship bias**.
+* LGD is based on an assumed value rather than directly measured recovery data.
 * Model performance decreases slightly under out-of-time validation.
 * Geographic information may introduce fairness concerns and would require additional testing before real-world deployment.
 
@@ -220,6 +220,6 @@ Credit-risk-modelling/
 
 ## Conclusion
 
-This project demonstrates an end-to-end approach to credit risk analytics, moving from borrower-level data and feature engineering to machine learning, calibrated risk estimation, explainability, and economically optimized lending decisions.
+This project demonstrates an end-to-end approach to credit risk analytics, progressing from borrower-level data and feature engineering to machine learning, probability calibration, explainability, risk segmentation, and profit-driven lending decisions.
 
-The key takeaway is that an effective credit risk model should not only **rank borrowers by default risk**, but also connect those predictions to **business decisions and portfolio economics**.
+The key takeaway is that an effective credit risk model should not only **rank borrowers by default risk**, but also translate those predictions into **data-driven lending decisions that balance portfolio risk and financial returns**.
